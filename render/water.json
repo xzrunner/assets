@@ -1,0 +1,390 @@
+{
+    "nodes": [
+        [
+            {
+                "position": [
+                    -158.2032470703125,
+                    -27.145538330078126
+                ],
+                "comp_type": "n2_transform"
+            },
+            {
+                "filepath": "",
+                "name": "",
+                "id": 0,
+                "comp_type": "n0_identity"
+            },
+            {
+                "visible": true,
+                "editable": true,
+                "comp_type": "n0_flags"
+            },
+            {
+                "node_type": "renderlab::shader_graph",
+                "node_val": {
+                    "title": "ShaderGraph",
+                    "style": {
+                        "only_title": false,
+                        "small_title_font": false
+                    },
+                    "name": "node0",
+                    "filepath": "..\\shader\\water.json",
+                    "vert_shader": "model",
+                    "vert": "\n#version 330 core\nlayout (location = 0) in vec2 aPos;\nlayout (location = 1) in vec2 aTexCoord;\n\nout vec2 TexCoord;\n\nvoid main()\n{\n\tgl_Position = vec4(aPos, 0.0, 1.0);\n\tTexCoord = vec2(aTexCoord.x, aTexCoord.y);\n}\n",
+                    "frag": "#version 330 core\nin vec2 TexCoord;\nuniform sampler2D tex;\n\n// https://docs.unity3d.com/Packages/com.unity.shadergraph@9.0/manual/Normal-Blend-Node.html\nvec3 normal_blend(vec3 a, vec3 b)\n{\n    return normalize(vec3(a.rg + b.rg, a.b * b.b));\n}\nvec3 normal_blend_reoriented(vec3 a, vec3 b)\n{\n    vec3 t = a.xyz + vec3(0.0, 0.0, 1.0);\n    vec3 u = b.xyz * vec3(-1.0, -1.0, 1.0);\n    return (t / t.z) * dot(t, u) - u;\n}\n\n// https://blog.selfshadow.com/publications/blending-in-detail/\nvec3 normal_blend_linear(vec3 a, vec3 b)\n{\n\treturn normalize(a + b);\n}\nvec3 normal_blend_overlay(vec3 a, vec3 b)\n{\n    vec3 n1 = a * 0.5 + 0.5;\n    vec3 n2 = b * 0.5 + 0.5;\n    float x = n1.x < 0.5 ? 2*n1.x*n2.x : 1 - 2*(1 - n1.x)*(1 - n2.x);\n    float y = n1.y < 0.5 ? 2*n1.y*n2.y : 1 - 2*(1 - n1.y)*(1 - n2.y);\n    float z = n1.z < 0.5 ? 2*n1.z*n2.z : 1 - 2*(1 - n1.z)*(1 - n2.z);\n    return normalize(vec3(x, y, z));\n}\nvec3 normal_blend_partial_derivative(vec3 a, vec3 b)\n{\n\treturn normalize(vec3(a.xz*b.y + b.xz*a.y, a.y*b.y)).xzy;\n}\nvec3 normal_blend_whiteout(vec3 a, vec3 b)\n{\n\treturn normalize(vec3(a.x + b.x, a.y * b.y, a.z + b.z));\n}\nvec3 normal_blend_udn(vec3 a, vec3 b)\n{\n\treturn normalize(vec3(a.x + b.x, a.y, a.z + b.z));\n}\nvec3 normal_blend_unity(vec3 a, vec3 b)\n{\n\tmat3 nBasis = mat3(\n\t    vec3(a.z, a.y, -a.x), // +90 degree rotation around y axis\n\t    vec3(a.x, a.z, -a.y), // -90 degree rotation around x axis\n\t    vec3(a.x, a.y,  a.z));\n\tvec3 r = normalize(b.x*nBasis[0] + b.y*nBasis[1] + b.z*nBasis[2]);\n\treturn r.xzy;\n}\n\n\nout vec4 FragColor;\n\nuniform UBO {\nvec4 time;\nvec4 sin_time;\nvec4 cos_time;\nvec4 delta_time;\n\n};\nvec3 calc_normal(sampler2D norm_tex, vec2 uv, vec2 speed, vec2 tilling, float time, vec2 uv_offset, float height)\n{\n    uv -= (time * speed);\n    vec2 xy = ((texture(norm_tex, ((uv * tilling) + uv_offset)).xy * vec2(2.0, 2.0)) - vec2(1.0, 1.0));\n    float z = (sqrt((1.0 - dot(xy, xy))) + 1.0);\n    z = (z * height);\n    return vec3(xy, z);\n}\n\n\nvoid main()\n{\nfloat f = 1.800000;\nfloat f0 = 1.300000;\nfloat f1 = 1.500000;\nvec2 f2 = vec2(0.500000, 0.500000);\nvec2 f20 = vec2(0.000000, -0.040000);\nfloat f3 = 0.750000;\nvec2 f21 = vec2(0.000000, 0.030000);\nfloat r = time.r;\n\nfloat f4 = 1.500000;\nvec2 f22 = vec2(0.500000, 0.000000);\nvec2 f23 = vec2(3.000000, 3.000000);\nvec2 mul = f23 * vec2(f, f);\nvec2 mul0 = f23 * vec2(f0, f0);\nvec2 f24 = vec2(0.200000, 0.000000);\nvec3 ret = calc_normal(tex, TexCoord, f20, mul, r, f2, f1);\n\nfloat r0 = ret.r;\nfloat g = ret.g;\nfloat b = ret.b;\n\nvec3 ret0 = calc_normal(tex, TexCoord, f21, mul0, r, vec2(0.0, 0.0), f3);\n\nfloat r1 = ret0.r;\nfloat g0 = ret0.g;\nfloat b0 = ret0.b;\n\nfloat add = b0 + b;\nfloat _out = - add;\nfloat add0 = r1 + r0;\nfloat _out0 = - add0;\nfloat add1 = g0 + g;\nvec3 rgb = vec3(_out0, add1, _out);\nvec3 ret1 = calc_normal(tex, TexCoord, f24, f23, r, f22, f4);\n\nfloat r2 = ret1.r;\nfloat g1 = ret1.g;\nfloat b1 = ret1.b;\n\nfloat _out1 = - b1;\nfloat _out2 = - r2;\nvec3 rgb0 = vec3(_out2, g1, _out1);\nvec3 _out3 = normal_blend_udn(rgb0, rgb);\nvec3 _out4 = normalize(_out3);\nvec3 f30 = vec3(-5.000000, 15.000000, -5.000000);\nvec3 _out5 = normalize(f30);\nfloat ret2 = dot(_out4, _out5);\nvec3 f31 = vec3(0.100000, 0.100000, 0.200000);\nvec3 mul1 = vec3(ret2, ret2, ret2) * f31;\nfloat f5 = 10.000000;\nvec3 mul2 = mul1 * vec3(f5, f5, f5);\nFragColor = vec4(mul2, 1.0);\n\n}\n\t",
+                    "props": []
+                },
+                "comp_type": "bp_node",
+                "connection": [
+                    {
+                        "from": "out",
+                        "to": [
+                            {
+                                "node_idx": 1,
+                                "pin": "obj"
+                            }
+                        ]
+                    }
+                ],
+                "connection": [
+                    {
+                        "from": "out",
+                        "to": [
+                            {
+                                "node_idx": 1,
+                                "pin": "obj"
+                            }
+                        ]
+                    }
+                ]
+            }
+        ],
+        [
+            {
+                "position": [
+                    7.6588134765625,
+                    -10.515789031982422
+                ],
+                "comp_type": "n2_transform"
+            },
+            {
+                "filepath": "",
+                "name": "",
+                "id": 0,
+                "comp_type": "n0_identity"
+            },
+            {
+                "visible": true,
+                "editable": true,
+                "comp_type": "n0_flags"
+            },
+            {
+                "node_type": "renderlab::bind",
+                "node_val": {
+                    "title": "Bind",
+                    "style": {
+                        "only_title": false,
+                        "small_title_font": false
+                    },
+                    "name": "node2",
+                    "channel": 0,
+                    "props": []
+                },
+                "comp_type": "bp_node",
+                "connection": [
+                    {
+                        "from": "next",
+                        "to": [
+                            {
+                                "node_idx": 5,
+                                "pin": "prev"
+                            }
+                        ]
+                    }
+                ],
+                "connection": [
+                    {
+                        "from": "next",
+                        "to": [
+                            {
+                                "node_idx": 5,
+                                "pin": "prev"
+                            }
+                        ]
+                    }
+                ]
+            }
+        ],
+        [
+            {
+                "position": [
+                    288.20867919921877,
+                    -6.839473724365234
+                ],
+                "comp_type": "n2_transform"
+            },
+            {
+                "filepath": "",
+                "name": "",
+                "id": 0,
+                "comp_type": "n0_identity"
+            },
+            {
+                "visible": true,
+                "editable": true,
+                "comp_type": "n0_flags"
+            },
+            {
+                "node_type": "renderlab::pass_end",
+                "node_val": {
+                    "title": "PassEnd0",
+                    "style": {
+                        "only_title": false,
+                        "small_title_font": false
+                    },
+                    "name": "",
+                    "pass_end": 0,
+                    "props": []
+                },
+                "comp_type": "bp_node",
+                "connection": [],
+                "connection": []
+            }
+        ],
+        [
+            {
+                "position": [
+                    -302.92730712890627,
+                    41.002899169921878
+                ],
+                "comp_type": "n2_transform"
+            },
+            {
+                "filepath": "",
+                "name": "",
+                "id": 0,
+                "comp_type": "n0_identity"
+            },
+            {
+                "visible": true,
+                "editable": true,
+                "comp_type": "n0_flags"
+            },
+            {
+                "node_type": "renderlab::clear",
+                "node_val": {
+                    "title": "Clear",
+                    "style": {
+                        "only_title": false,
+                        "small_title_font": false
+                    },
+                    "name": "node18",
+                    "type": [
+                        "color",
+                        "depth"
+                    ],
+                    "color": {
+                        "r": 51,
+                        "g": 79,
+                        "b": 79,
+                        "a": 255
+                    },
+                    "props": []
+                },
+                "comp_type": "bp_node",
+                "connection": [
+                    {
+                        "from": "next",
+                        "to": [
+                            {
+                                "node_idx": 4,
+                                "pin": "prev"
+                            }
+                        ]
+                    }
+                ],
+                "connection": [
+                    {
+                        "from": "next",
+                        "to": [
+                            {
+                                "node_idx": 4,
+                                "pin": "prev"
+                            }
+                        ]
+                    }
+                ]
+            }
+        ],
+        [
+            {
+                "position": [
+                    -159.22337341308595,
+                    42.96824645996094
+                ],
+                "comp_type": "n2_transform"
+            },
+            {
+                "filepath": "",
+                "name": "",
+                "id": 0,
+                "comp_type": "n0_identity"
+            },
+            {
+                "visible": true,
+                "editable": true,
+                "comp_type": "n0_flags"
+            },
+            {
+                "node_type": "renderlab::cull",
+                "node_val": {
+                    "title": "Cull",
+                    "style": {
+                        "only_title": false,
+                        "small_title_font": false
+                    },
+                    "name": "node24",
+                    "type": "off",
+                    "props": []
+                },
+                "comp_type": "bp_node",
+                "connection": [
+                    {
+                        "from": "next",
+                        "to": [
+                            {
+                                "node_idx": 1,
+                                "pin": "prev"
+                            }
+                        ]
+                    }
+                ],
+                "connection": [
+                    {
+                        "from": "next",
+                        "to": [
+                            {
+                                "node_idx": 1,
+                                "pin": "prev"
+                            }
+                        ]
+                    }
+                ]
+            }
+        ],
+        [
+            {
+                "position": [
+                    142.0179443359375,
+                    -32.556922912597659
+                ],
+                "comp_type": "n2_transform"
+            },
+            {
+                "filepath": "",
+                "name": "",
+                "id": 0,
+                "comp_type": "n0_identity"
+            },
+            {
+                "visible": true,
+                "editable": true,
+                "comp_type": "n0_flags"
+            },
+            {
+                "node_type": "renderlab::draw",
+                "node_val": {
+                    "title": "Draw",
+                    "style": {
+                        "only_title": false,
+                        "small_title_font": false
+                    },
+                    "name": "node20",
+                    "props": []
+                },
+                "comp_type": "bp_node",
+                "connection": [
+                    {
+                        "from": "next",
+                        "to": [
+                            {
+                                "node_idx": 2,
+                                "pin": "prev"
+                            }
+                        ]
+                    }
+                ],
+                "connection": [
+                    {
+                        "from": "next",
+                        "to": [
+                            {
+                                "node_idx": 2,
+                                "pin": "prev"
+                            }
+                        ]
+                    }
+                ]
+            }
+        ],
+        [
+            {
+                "position": [
+                    -12.27752685546875,
+                    -87.46598815917969
+                ],
+                "comp_type": "n2_transform"
+            },
+            {
+                "filepath": "",
+                "name": "",
+                "id": 0,
+                "comp_type": "n0_identity"
+            },
+            {
+                "visible": true,
+                "editable": true,
+                "comp_type": "n0_flags"
+            },
+            {
+                "node_type": "renderlab::primitive_shape",
+                "node_val": {
+                    "title": "PrimitiveShape",
+                    "style": {
+                        "only_title": false,
+                        "small_title_font": false
+                    },
+                    "name": "node21",
+                    "type": "quad",
+                    "layout": "pos_tex",
+                    "props": []
+                },
+                "comp_type": "bp_node",
+                "connection": [
+                    {
+                        "from": "out",
+                        "to": [
+                            {
+                                "node_idx": 5,
+                                "pin": "obj"
+                            }
+                        ]
+                    }
+                ],
+                "connection": [
+                    {
+                        "from": "out",
+                        "to": [
+                            {
+                                "node_idx": 5,
+                                "pin": "obj"
+                            }
+                        ]
+                    }
+                ]
+            }
+        ]
+    ],
+    "comp_type": "n0_complex",
+    "page_type": "render_graph"
+}
