@@ -770,8 +770,8 @@
         [
             {
                 "position": [
-                    -786.7875366210938,
-                    368.8251037597656
+                    -968.776611328125,
+                    177.00820922851563
                 ],
                 "comp_type": "n2_transform"
             },
@@ -805,12 +805,8 @@
                         "from": "tex",
                         "to": [
                             {
-                                "node_idx": 16,
-                                "pin": "tex"
-                            },
-                            {
-                                "node_idx": 20,
-                                "pin": "heightmap"
+                                "node_idx": 35,
+                                "pin": "_in"
                             }
                         ]
                     }
@@ -1703,6 +1699,56 @@
                             {
                                 "node_idx": 33,
                                 "pin": "b"
+                            }
+                        ]
+                    }
+                ]
+            }
+        ],
+        [
+            {
+                "position": [
+                    -800.8232421875,
+                    176.19442749023438
+                ],
+                "comp_type": "n2_transform"
+            },
+            {
+                "filepath": "",
+                "name": "",
+                "id": 0,
+                "comp_type": "n0_identity"
+            },
+            {
+                "visible": true,
+                "editable": true,
+                "comp_type": "n0_flags"
+            },
+            {
+                "node_type": "shaderlab::input",
+                "node_val": {
+                    "title": "Input",
+                    "style": {
+                        "only_title": false,
+                        "small_title_font": false
+                    },
+                    "name": "node34",
+                    "var_type": "sampler2D",
+                    "var_name": "heightmap",
+                    "props": []
+                },
+                "comp_type": "bp_node",
+                "connection": [
+                    {
+                        "from": "_out",
+                        "to": [
+                            {
+                                "node_idx": 16,
+                                "pin": "tex"
+                            },
+                            {
+                                "node_idx": 20,
+                                "pin": "heightmap"
                             }
                         ]
                     }
