@@ -463,8 +463,8 @@
         [
             {
                 "position": [
-                    -199.12527465820313,
-                    150.48875427246095
+                    -353.7962951660156,
+                    154.3153076171875
                 ],
                 "comp_type": "n2_transform"
             },
@@ -500,8 +500,8 @@
                         "from": "f2",
                         "to": [
                             {
-                                "node_idx": 3,
-                                "pin": "speed"
+                                "node_idx": 50,
+                                "pin": "_in"
                             }
                         ]
                     }
@@ -2437,6 +2437,52 @@
                             {
                                 "node_idx": 46,
                                 "pin": "b"
+                            }
+                        ]
+                    }
+                ]
+            }
+        ],
+        [
+            {
+                "position": [
+                    -211.55548095703126,
+                    154.37721252441407
+                ],
+                "comp_type": "n2_transform"
+            },
+            {
+                "filepath": "",
+                "name": "",
+                "id": 0,
+                "comp_type": "n0_identity"
+            },
+            {
+                "visible": true,
+                "editable": true,
+                "comp_type": "n0_flags"
+            },
+            {
+                "node_type": "shaderlab::input",
+                "node_val": {
+                    "title": "Input",
+                    "style": {
+                        "only_title": false,
+                        "small_title_font": false
+                    },
+                    "name": "node26",
+                    "var_type": "vec2",
+                    "var_name": "speed",
+                    "props": []
+                },
+                "comp_type": "bp_node",
+                "connection": [
+                    {
+                        "from": "_out",
+                        "to": [
+                            {
+                                "node_idx": 3,
+                                "pin": "speed"
                             }
                         ]
                     }

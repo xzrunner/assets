@@ -30,8 +30,8 @@
                     "name": "node0",
                     "filepath": "..\\shader\\water.json",
                     "vert_shader": "model",
-                    "vert": "\n#version 330 core\nlayout (location = 0) in vec2 aPos;\nlayout (location = 1) in vec2 aTexCoord;\n\nout vec2 TexCoord;\n\nvoid main()\n{\n\tgl_Position = vec4(aPos, 0.0, 1.0);\n\tTexCoord = vec2(aTexCoord.x, aTexCoord.y);\n}\n",
-                    "frag": "#version 330 core\nin vec2 TexCoord;\nuniform sampler2D tex;\n\n// https://docs.unity3d.com/Packages/com.unity.shadergraph@9.0/manual/Normal-Blend-Node.html\nvec3 normal_blend(vec3 a, vec3 b)\n{\n    return normalize(vec3(a.rg + b.rg, a.b * b.b));\n}\nvec3 normal_blend_reoriented(vec3 a, vec3 b)\n{\n    vec3 t = a.xyz + vec3(0.0, 0.0, 1.0);\n    vec3 u = b.xyz * vec3(-1.0, -1.0, 1.0);\n    return (t / t.z) * dot(t, u) - u;\n}\n\n// https://blog.selfshadow.com/publications/blending-in-detail/\nvec3 normal_blend_linear(vec3 a, vec3 b)\n{\n\treturn normalize(a + b);\n}\nvec3 normal_blend_overlay(vec3 a, vec3 b)\n{\n    vec3 n1 = a * 0.5 + 0.5;\n    vec3 n2 = b * 0.5 + 0.5;\n    float x = n1.x < 0.5 ? 2*n1.x*n2.x : 1 - 2*(1 - n1.x)*(1 - n2.x);\n    float y = n1.y < 0.5 ? 2*n1.y*n2.y : 1 - 2*(1 - n1.y)*(1 - n2.y);\n    float z = n1.z < 0.5 ? 2*n1.z*n2.z : 1 - 2*(1 - n1.z)*(1 - n2.z);\n    return normalize(vec3(x, y, z));\n}\nvec3 normal_blend_partial_derivative(vec3 a, vec3 b)\n{\n\treturn normalize(vec3(a.xz*b.y + b.xz*a.y, a.y*b.y)).xzy;\n}\nvec3 normal_blend_whiteout(vec3 a, vec3 b)\n{\n\treturn normalize(vec3(a.x + b.x, a.y * b.y, a.z + b.z));\n}\nvec3 normal_blend_udn(vec3 a, vec3 b)\n{\n\treturn normalize(vec3(a.x + b.x, a.y, a.z + b.z));\n}\nvec3 normal_blend_unity(vec3 a, vec3 b)\n{\n\tmat3 nBasis = mat3(\n\t    vec3(a.z, a.y, -a.x), // +90 degree rotation around y axis\n\t    vec3(a.x, a.z, -a.y), // -90 degree rotation around x axis\n\t    vec3(a.x, a.y,  a.z));\n\tvec3 r = normalize(b.x*nBasis[0] + b.y*nBasis[1] + b.z*nBasis[2]);\n\treturn r.xzy;\n}\n\n\nout vec4 FragColor;\n\nuniform UBO {\nvec4 time;\nvec4 sin_time;\nvec4 cos_time;\nvec4 delta_time;\n\n};\nvec3 calc_normal(sampler2D norm_tex, vec2 uv, vec2 speed, vec2 tilling, float time, vec2 uv_offset, float height)\n{\n    uv -= (time * speed);\n    vec2 xy = ((texture(norm_tex, ((uv * tilling) + uv_offset)).xy * vec2(2.0, 2.0)) - vec2(1.0, 1.0));\n    float z = (sqrt((1.0 - dot(xy, xy))) + 1.0);\n    z = (z * height);\n    return vec3(xy, z);\n}\n\n\nvoid main()\n{\nfloat f = 1.800000;\nfloat f0 = 1.300000;\nfloat f1 = 1.500000;\nvec2 f2 = vec2(0.500000, 0.500000);\nvec2 f20 = vec2(0.000000, -0.040000);\nfloat f3 = 0.750000;\nvec2 f21 = vec2(0.000000, 0.030000);\nfloat r = time.r;\n\nfloat f4 = 1.500000;\nvec2 f22 = vec2(0.500000, 0.000000);\nvec2 f23 = vec2(3.000000, 3.000000);\nvec2 mul = f23 * vec2(f, f);\nvec2 mul0 = f23 * vec2(f0, f0);\nvec2 f24 = vec2(0.200000, 0.000000);\nvec3 ret = calc_normal(tex, TexCoord, f20, mul, r, f2, f1);\n\nfloat r0 = ret.r;\nfloat g = ret.g;\nfloat b = ret.b;\n\nvec3 ret0 = calc_normal(tex, TexCoord, f21, mul0, r, vec2(0.0, 0.0), f3);\n\nfloat r1 = ret0.r;\nfloat g0 = ret0.g;\nfloat b0 = ret0.b;\n\nfloat add = b0 + b;\nfloat _out = - add;\nfloat add0 = r1 + r0;\nfloat _out0 = - add0;\nfloat add1 = g0 + g;\nvec3 rgb = vec3(_out0, add1, _out);\nvec3 ret1 = calc_normal(tex, TexCoord, f24, f23, r, f22, f4);\n\nfloat r2 = ret1.r;\nfloat g1 = ret1.g;\nfloat b1 = ret1.b;\n\nfloat _out1 = - b1;\nfloat _out2 = - r2;\nvec3 rgb0 = vec3(_out2, g1, _out1);\nvec3 _out3 = normal_blend_udn(rgb0, rgb);\nvec3 _out4 = normalize(_out3);\nvec3 f30 = vec3(-5.000000, 15.000000, -5.000000);\nvec3 _out5 = normalize(f30);\nfloat ret2 = dot(_out4, _out5);\nvec3 f31 = vec3(0.100000, 0.100000, 0.200000);\nvec3 mul1 = vec3(ret2, ret2, ret2) * f31;\nfloat f5 = 10.000000;\nvec3 mul2 = mul1 * vec3(f5, f5, f5);\nFragColor = vec4(mul2, 1.0);\n\n}\n\t",
+                    "vert": "\n\t#version 330 core\n\tlayout (location = 0) in vec3 position;\n\tlayout (location = 1) in vec2 texcoord;\n\n\tout vec2 TexCoord;\n\tout vec4 v_frag_pos;\n\n\tlayout(std140) uniform UBO_VS\n\t{\n\t\tmat4 projection;\n\t\tmat4 view;\n\t\tmat4 model;\n\t} ubo_vs;\n\n\tvoid main()\n\t{\n\t\tTexCoord = vec2(texcoord.x, texcoord.y);\n\n\t\tv_frag_pos = vec4(position, 1.0);\n\t\tgl_Position = ubo_vs.projection * ubo_vs.view * ubo_vs.model * v_frag_pos;\n\t}\n\t",
+                    "frag": "#version 330 core\nin vec2 TexCoord;\nuniform sampler2D tex;\n\n// https://docs.unity3d.com/Packages/com.unity.shadergraph@9.0/manual/Normal-Blend-Node.html\nvec3 normal_blend(vec3 a, vec3 b)\n{\n    return normalize(vec3(a.rg + b.rg, a.b * b.b));\n}\nvec3 normal_blend_reoriented(vec3 a, vec3 b)\n{\n    vec3 t = a.xyz + vec3(0.0, 0.0, 1.0);\n    vec3 u = b.xyz * vec3(-1.0, -1.0, 1.0);\n    return (t / t.z) * dot(t, u) - u;\n}\n\n// https://blog.selfshadow.com/publications/blending-in-detail/\nvec3 normal_blend_linear(vec3 a, vec3 b)\n{\n\treturn normalize(a + b);\n}\nvec3 normal_blend_overlay(vec3 a, vec3 b)\n{\n    vec3 n1 = a * 0.5 + 0.5;\n    vec3 n2 = b * 0.5 + 0.5;\n    float x = n1.x < 0.5 ? 2*n1.x*n2.x : 1 - 2*(1 - n1.x)*(1 - n2.x);\n    float y = n1.y < 0.5 ? 2*n1.y*n2.y : 1 - 2*(1 - n1.y)*(1 - n2.y);\n    float z = n1.z < 0.5 ? 2*n1.z*n2.z : 1 - 2*(1 - n1.z)*(1 - n2.z);\n    return normalize(vec3(x, y, z));\n}\nvec3 normal_blend_partial_derivative(vec3 a, vec3 b)\n{\n\treturn normalize(vec3(a.xz*b.y + b.xz*a.y, a.y*b.y)).xzy;\n}\nvec3 normal_blend_whiteout(vec3 a, vec3 b)\n{\n\treturn normalize(vec3(a.x + b.x, a.y * b.y, a.z + b.z));\n}\nvec3 normal_blend_udn(vec3 a, vec3 b)\n{\n\treturn normalize(vec3(a.x + b.x, a.y, a.z + b.z));\n}\nvec3 normal_blend_unity(vec3 a, vec3 b)\n{\n\tmat3 nBasis = mat3(\n\t    vec3(a.z, a.y, -a.x), // +90 degree rotation around y axis\n\t    vec3(a.x, a.z, -a.y), // -90 degree rotation around x axis\n\t    vec3(a.x, a.y,  a.z));\n\tvec3 r = normalize(b.x*nBasis[0] + b.y*nBasis[1] + b.z*nBasis[2]);\n\treturn r.xzy;\n}\n\n\nout vec4 FragColor;\n\nuniform UBO {\nvec4 time;\nvec4 sin_time;\nvec4 cos_time;\nvec4 delta_time;\nvec2 speed;\n\n};\nvec3 calc_normal(sampler2D norm_tex, vec2 uv, vec2 speed, vec2 tilling, float time, vec2 uv_offset, float height)\n{\n    uv -= (time * speed);\n    vec2 xy = ((texture(norm_tex, ((uv * tilling) + uv_offset)).xy * vec2(2.0, 2.0)) - vec2(1.0, 1.0));\n    float z = (sqrt((1.0 - dot(xy, xy))) + 1.0);\n    z = (z * height);\n    return vec3(xy, z);\n}\n\n\nvoid main()\n{\nfloat f = 1.800000;\nfloat f0 = 1.300000;\nfloat f1 = 1.500000;\nvec2 f2 = vec2(0.500000, 0.500000);\nvec2 f20 = vec2(0.000000, -0.040000);\nfloat f3 = 0.750000;\nvec2 f21 = vec2(0.000000, 0.030000);\nfloat r = time.r;\n\nfloat f4 = 1.500000;\nvec2 f22 = vec2(0.500000, 0.000000);\nvec2 f23 = vec2(3.000000, 3.000000);\nvec2 mul = f23 * vec2(f, f);\nvec2 mul0 = f23 * vec2(f0, f0);\nvec3 ret = calc_normal(tex, TexCoord, f20, mul, r, f2, f1);\n\nfloat r0 = ret.r;\nfloat g = ret.g;\nfloat b = ret.b;\n\nvec3 ret0 = calc_normal(tex, TexCoord, f21, mul0, r, vec2(0.0, 0.0), f3);\n\nfloat r1 = ret0.r;\nfloat g0 = ret0.g;\nfloat b0 = ret0.b;\n\nfloat add = b0 + b;\nfloat _out = - add;\nfloat add0 = r1 + r0;\nfloat _out0 = - add0;\nfloat add1 = g0 + g;\nvec3 rgb = vec3(_out0, add1, _out);\nvec3 ret1 = calc_normal(tex, TexCoord, speed, f23, r, f22, f4);\n\nfloat r2 = ret1.r;\nfloat g1 = ret1.g;\nfloat b1 = ret1.b;\n\nfloat _out1 = - b1;\nfloat _out2 = - r2;\nvec3 rgb0 = vec3(_out2, g1, _out1);\nvec3 _out3 = normal_blend_udn(rgb0, rgb);\nvec3 _out4 = normalize(_out3);\nvec3 f30 = vec3(-5.000000, 15.000000, -5.000000);\nvec3 _out5 = normalize(f30);\nfloat ret2 = dot(_out4, _out5);\nvec3 f31 = vec3(0.100000, 0.100000, 0.200000);\nvec3 mul1 = vec3(ret2, ret2, ret2) * f31;\nfloat f5 = 10.000000;\nvec3 mul2 = mul1 * vec3(f5, f5, f5);\nFragColor = vec4(mul2, 1.0);\n\n}\n\t",
                     "props": []
                 },
                 "comp_type": "bp_node",
@@ -378,6 +378,65 @@
                             {
                                 "node_idx": 5,
                                 "pin": "obj"
+                            }
+                        ]
+                    }
+                ]
+            }
+        ],
+        [
+            {
+                "position": [
+                    -282.8699035644531,
+                    -26.92376136779785
+                ],
+                "comp_type": "n2_transform"
+            },
+            {
+                "filepath": "",
+                "name": "",
+                "id": 0,
+                "comp_type": "n0_identity"
+            },
+            {
+                "visible": true,
+                "editable": true,
+                "comp_type": "n0_flags"
+            },
+            {
+                "node_type": "renderlab::vector2",
+                "node_val": {
+                    "title": "Vector2",
+                    "style": {
+                        "only_title": false,
+                        "small_title_font": false
+                    },
+                    "name": "node1",
+                    "val": {
+                        "x": 0.5,
+                        "y": 0.0
+                    },
+                    "props": []
+                },
+                "comp_type": "bp_node",
+                "connection": [
+                    {
+                        "from": "out",
+                        "to": [
+                            {
+                                "node_idx": 0,
+                                "pin": "speed"
+                            }
+                        ]
+                    }
+                ],
+                "connection": [
+                    {
+                        "from": "out",
+                        "to": [
+                            {
+                                "node_idx": 0,
+                                "pin": "speed"
                             }
                         ]
                     }
